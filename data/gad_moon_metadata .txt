@@ -1,0 +1,43 @@
+gad_cleaned.csv metadata
+
+This dataset includes amphibian survey data collected on SLU campus by Dr. Ashpole's Global Amphibian Decline class dating back to fall 2014. Samples were collected by students in the class using a variety of different survey methods on a nightly basis from late August until the end of October. The dataset is updated on a yearly basis upon the conclusion of GAD class surveying, however GAD was not offered every year so some years lack observations. 
+
+Key:
+Activity - what the amphibian was doing upon observation
+SpeciesName - The common name of the species
+OBJECTID - the number of the observation in the dataset
+Date - the date the observation was made
+SiteMainCl - the general area the observation was made (campus)
+SiteSubClass - a more specific area the observation was made (a part of campus)
+Stage - the life stage of the amphibian
+Sample - whether or not the specimen was brought to the lab and sampled
+AirTemp_F - the temperature in Fahrenheit when the observation was made
+WindSpeed - the relative windspeed at the time of observation
+RelHumid - the relative humidity at the time of observation
+Comments - additional comments made by the observer
+NumIndivid - the number of individuals in each observation
+CreatedID - who made the observation
+LastEditID - the last person to edit the entry
+StartTime1 - the time the survey that the observation was made began
+TimeFound1 - the time the observation was made
+EndTime1 - the time the survey that the observation was made ended
+Cloud - scaled from 0 to 4, 0 being clear and 4 being completely overcast
+Rain - scaled from 0 to 4, 0 being no rain and 4 being very rainy
+Weight - the weight of the specimen 
+LenghtInCen - the length of the specimen in centimeters
+Abnormalities - any abnormalities the specimen had
+Long - the longitude the specimen was observed at
+Lat - the lattitude the specimen was observed at
+Real_Loc - whether or not the location of the observation was actual or estimated
+Habitat - the habitat type the specimen was found in
+WaterTemp - If the specimen was in water, the temperature of the water
+LastEditDate - the date of the last edit to the entry
+GlobalID - a gis object identifier
+LandClass - the DEC land class identification for the location the specimen was found
+Length - an additional length variable, units unknown
+NumObservations - the number of observations made, mostly ignored by the observers
+AliveDead - whether the specimen observed was alive or dead
+illum_pct - the percent illumination of the moon on a particular night
+phase - the phase of the moon on said night
+
+

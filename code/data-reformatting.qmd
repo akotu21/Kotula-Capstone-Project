@@ -1,0 +1,49 @@
+---
+title: "CAPDAP cleanup"
+format: html
+---
+
+### set up
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+```
+
+### read in datasets
+```{r}
+gad <- read.csv(here("data", "gad_cleaned.csv"))
+moon <- read.csv(here("data", "moon_illumination_1800-2100.csv"))
+```
+
+need to add the moon phase data to the amphibian data, use dplyr joins to do so. First, the date categories must be in the same format to use as a key.
+```{r}
+glimpse(moon)
+glimpse(gad)
+```
+
+the date variable for moon has both date and time in the same variable. They need to be seperated before you can use lubridate functions.
+
+```{r}
+moon <- moon |> 
+  separate(date, c("date", "time"), sep = " ") |>
+  select(-time, -X)
+```
+
+now both date variables can be converted to dates but they must be in the same format
+```{r}
+gad$Date <- mdy(gad$Date)
+moon$date <- ymd(moon$date)
+```
+
+
+join the dates using dplyr functions
+```{r}
+gad_moon <- left_join(gad, moon, join_by(Date == date))
+```
+
+export the new dataset as a csv file
+```{r}
+write.csv(gad_moon, file = here("data/gad_moon.csv"))
+```
+

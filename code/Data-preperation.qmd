@@ -1,0 +1,148 @@
+---
+title: "Kotula-Data-Exploration"
+format: html
+---
+
+### Set up document
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### read in data
+```{r}
+gad <- read.csv(here("data", "gad_moon.csv"))
+glimpse(gad)
+```
+looking at the dataset with glimpse shows that several variables need to be made into factors. Many of these variables are not relevent to my analysis, so I will leave those alone.
+
+### reformat variables
+```{r}
+gad$SpeciesName <- as.factor(gad$SpeciesName)
+levels(gad$SpeciesName)
+```
+a couple of the levels of SpeciesName can be combined. AmericanToad and toad can be combined, as only one toad species lives on SLU campus. Bullfrog and American Bullfrog refer to the same species so they can be combined. NorthernLeopardFrog and LeopardFrog also refer to the same species as only the Northern Leopard Frog exists on SLU campus.Northern Redback Salamander and Eastern Red-back salamander refer to the same species and need to be combined. Finally, Chorus Frog and Western Chorus frog also refer to the same species so must combined.
+```{r}
+fix <- which(gad$SpeciesName %in% c("AmericanToad",
+                                    "toad"))
+
+gad$SpeciesName[fix] <- "AmericanToad"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix1 <- which(gad$SpeciesName %in% c("AmericanBullFrog",
+                                    "Bullfrog"))
+
+gad$SpeciesName[fix1] <- "AmericanBullFrog"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix2 <- which(gad$SpeciesName %in% c("NorthernLeopardFrog",
+                                    "LeopardFrog"))
+
+gad$SpeciesName[fix2] <- "NorthernLeopardFrog"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix3 <- which(gad$SpeciesName %in% c("Eastern Red-back Salamander",
+                                    "Northern Redback Salamander"))
+
+gad$SpeciesName[fix3] <- "Eastern Red-back Salamander"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix4 <- which(gad$SpeciesName %in% c("Western Chorus Frog",
+                                    "Chorus Frog"))
+
+gad$SpeciesName[fix4] <- "Western Chorus Frog"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix5 <- which(gad$SpeciesName %in% c("Red-spotted Newt",
+                                    "Eastern Newt"))
+
+gad$SpeciesName[fix5] <- "Eastern Newt"
+gad$SpeciesName <- factor(gad$SpeciesName)
+
+fix6 <- which(gad$SpeciesName %in% c("<Null>",
+                                    "None",
+                                    "Unidentified"))
+
+gad$SpeciesName[fix6] <- "NA" #error that says NA generated actually does what I want it to do so I'll just leave this
+gad$SpeciesName <- factor(gad$SpeciesName)
+```
+
+a few other variables also need reformatted but they don't require as much work
+```{r}
+gad$Date <- ymd(gad$Date)
+gad$SiteMainCl <- as.factor(gad$SiteMainCl)
+gad$SurveyType <- as.factor(gad$SurveyType)
+gad$Stage <- as.factor(gad$Stage)
+gad$LandClass <- as.factor(gad$LandClass)
+gad$illum_pct <- as.factor(gad$illum_pct)
+```
+
+
+### examining the data for outliers, other errors
+```{r}
+gad |> View()
+```
+The main thing I notice is that the time varibale does not look right, but I am very unsure on how to work with this.
+
+Because I want to look at the number of amphibians found during a particular date, I need to use group_by and summarise to get that data.
+```{r}
+gad_totals <- gad |>
+  group_by(Date) |>
+  summarise(n_found = n()) 
+#how to account for observations that include multiple individuals?
+
+
+#plot of amphibians found by date
+ggplot(gad_totals, aes(x = Date, y = n_found))+
+  geom_point()
+
+
+```
+
+plotting amhibians by date does not work well at all. There were only 6 course sections over the course of the dataset that surveyed over the course of around two months. 
+
+It does help find days that were outliers. very stranget that on one day in 2017, over 125 amphibians were found.
+
+
+```{r}
+summary(gad_totals)
+```
+summary shows that the average number per survey date is 11, but there are some outliers, inlcuding a max of 134. 
+
+
+I want to add the moon data to the totals
+```{r}
+#get the moon phase an illumination for each date
+gad_justmoon <- gad |>
+  select(Date, illum_pct, phase) |>
+  group_by(Date) |>
+  slice(1)
+
+#add those to the totals dataset
+gad_totals <- left_join(gad_totals, gad_justmoon, join_by(Date == Date))
+```
+ 
+make a boxplot comparing moon phase and n_found
+```{r}
+ggplot(gad_totals, aes(x = phase, y = n_found))+
+  geom_boxplot() +
+  coord_flip()+
+  theme_bw()
+```
+Thee means seem relatively similar between different moon phases, although outliers may make it harder to see a difference. There doesn't appear to be any association between moon phase and amphibians found. 
+
+I also want to explore dec land classification
+```{r}
+gad_habitat <- gad |>
+  group_by(LandClass) |>
+  summarise(n_found = n())
+
+ggplot(gad_habitat, aes(x = LandClass, y = n_found))+
+  geom_col()+
+  coord_flip()+
+  theme_bw()
+```
+There are way more NA variables than I anticipated. The most common landclasses appaer to be DevOpen, WoodWet, and EvergForest. How is this influenced by survey bias?
+
