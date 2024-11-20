@@ -1,0 +1,110 @@
+---
+title: "preliminary-analysis-3"
+format: html
+---
+
+#### Set Up Document
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+How does land class effect species richness of a survey?
+
+For this question, we are exploring the relationship between a quantitative variable and a categorical variable. Species richness is a discrete variable and land class is a nominal categorical variable.
+
+For this analysis, we will be using one-way ANOVA to explore the relationship between our variables.
+
+#### Read in the data
+For this analysis we need to work with the whole gad_moon.csv dataset. We will need to use dplyr functions to create a species richness variable.
+```{r}
+gad <- read.csv(here("data", "gad_moon.csv"))
+
+sp.richness.df <- gad |>
+  group_by(LandClass, SpeciesName) |>
+  summarise(individ.count = n()) |> 
+  ungroup() |>
+  group_by(LandClass) |>
+  summarise(SpeciesRichness = n()) |>
+  slice(1:11) |>
+  mutate(LandClass = as.factor(LandClass))
+
+sp.richness.df2 <- gad |>
+  group_by(LandClass, SpeciesName, Date) |>
+  summarise(n_individuals = n()) |> 
+  ungroup() |>
+  group_by(LandClass, Date) |>
+  summarise(SpeciesRichness = n()) |>
+  slice(1:279) |> 
+  mutate(LandClass = as.factor(LandClass))
+
+```
+Now we have read in the amphibian data and created a species richness dataframe that includes the number of species found in each habitat. This code also changed LandClass to a factor data type and removed the NA land class variables.
+
+The code for sp.richness.df2 creates observations per date per landclass, I'm not sure if I will use this but I will keep it for now.
+
+#### plot the data
+Make a barplot to explore the difference between the groups
+```{r}
+ggplot(sp.richness.df, aes(LandClass, SpeciesRichness))+
+  geom_col()+
+  coord_flip()
+```
+There is higher observed species richness in DevOpen, Woodwet, and EvergForest land classes. There is lower observed species richness in MixedForest, EmergHerbWet, and DevHigh land class.
+
+#### build a model
+```{r}
+sp.richness.model <- lm(SpeciesRichness ~ LandClass, data = sp.richness.df2)
+```
+The model doesn't work with sp.richness.df so I used sp.richness.df2 instead. I think I will try to find a different approach to this question in the next stage of data analysis.
+
+#### check assumptions
+```{r}
+autoplot(sp.richness.model)
+```
+This is a mess. A line is not the best way to model this data and it does not meet the assumption of normality.
+
+#### Interpret the Model
+```{r}
+anova(sp.richness.model)
+```
+We can reject the null hypothesis that there is not an association between land class and species richness. Based on the ANOVA table, there is a significant relationship between LandClass and SpeciesRichness (F=3.4035, df=10, p=0.0003288).
+
+```{r}
+summary(sp.richness.model)
+```
+The summary table shows that there is a not difference between species richness in the deciduous forest land class and species richness in the other land classes.
+
+We can use the multcomp package to better find out if any variables are different from each other  using a Tukey Test.
+```{r}
+library(multcomp)
+phc1 <- glht(sp.richness.model, linfct = mcp(LandClass = "Tukey"))
+
+cld(phc1)
+```
+
+The `cld()` fucntion shows that there are two distinct groups in the data that it labels a and b. Several of the land classes are not significantly distinct from either of the two groups and are labeled ab.
+
+DevLow and DevMed are in group b, while DevOpen is in group a. The other groups are in group ab.
+
+#### plot again
+I want to get the mean species richness/date to add to the plot
+```{r}
+sr_means <- sp.richness.df2 |>
+  group_by(LandClass) |>
+  summarise(mean.sr = mean(SpeciesRichness)) 
+
+ggplot(data = sp.richness.df2, aes(x = LandClass, y = SpeciesRichness))+
+  geom_point(aes(color = LandClass))+
+  geom_point(data = sr_means, aes(x = LandClass, y = mean.sr,
+                                  fill = LandClass),
+             size = 5, shape = 23)+
+  coord_flip()+
+  theme_bw()
+```
+
+#### A note
+I know that this analysis is a mess and likely needs redone. I expect to come back to this after break and fix this, however, I wanted to be able to submit this assignment before I started travelling so I'd have one fewer thing to worry about.

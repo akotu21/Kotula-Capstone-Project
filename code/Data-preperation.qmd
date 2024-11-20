@@ -146,3 +146,7 @@ ggplot(gad_habitat, aes(x = LandClass, y = n_found))+
 ```
 There are way more NA variables than I anticipated. The most common landclasses appaer to be DevOpen, WoodWet, and EvergForest. How is this influenced by survey bias?
 
+```{r}
+write.csv(gad_totals, file = here("data/gad_totals1.csv"))
+```
+

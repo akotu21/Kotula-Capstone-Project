@@ -1,0 +1,88 @@
+---
+title: "preliminary-analysis-2"
+format: html
+---
+
+#### Set Up Document
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+
+How does moon phase effect the number of amphibians observed?
+
+In this question we are exploring the relationship between a categorical variable and a quantitative variable. Moon phase is a nominal categorical variable and number of amphibians observed is a discrete data type.
+
+When exploring relationships between one categorical predictor and a quantititive response, you can use a one-way ANOVA test.
+
+#### Read in data
+I need to use my gad_totals dataset for this analysis.
+```{r}
+gad_totals <- read.csv(here("data", "gad_totals1.csv"))
+glimpse(gad_totals)
+```
+Like in the first analysis, the dataset needs cleaned up. This time it is important that the phase variable is a factor rather than a character data type. I will also remove X and fix the time variable. When looking at the full dataset, there is a row at the end with data only for count, I'll also remove that point.
+```{r}
+gad_totals <- gad_totals |>
+  select(-X) |>
+  mutate(Date = ymd(Date)) |>
+  mutate(phase = as.factor(phase)) |>
+  slice(1:154)
+```
+
+#### plot the data
+I'll start by making a boxplot to view the relationship between moon phase and amphibians found and estimate the group means.
+```{r}
+ggplot(gad_totals, aes(x = phase, y = n_found))+
+  geom_boxplot()+
+  geom_point()+
+  coord_flip()+
+  theme_bw()
+```
+Based on this boxplot, the means are very close together. All of the groups seem to have means between 0 and 10. I won't give exact estimates because they seem to be so close together that they will all be relatively similar. I don't expect there to be a difference in means between the 8 groups.
+
+#### construct the model
+use the lm function to build a model for anova
+```{r}
+phase_model <- lm(n_found ~ phase, data = gad_totals)
+```
+
+#### check assumptions
+```{r}
+autoplot(phase_model)
+```
+The assumptions do not look great, I'll move on anyways.
+
+#### Interpret model
+```{r}
+anova(phase_model)
+```
+Based on the ANOVA table, we fail to reject the null hypothesis that there is no relationship between moon phase and number of amphibians found (F = 1.1909, DF = 7, 
+P = 0.3115).
+
+#### Plot again
+
+To make an improved plot, I need a dataset that just includes the mean for each group.
+```{r}
+phase_means <- gad_totals |>
+  group_by(phase) |>
+  summarise(mean_found = mean(n_found))
+```
+
+Now I can plot the data.
+```{r}
+ggplot(data = gad_totals, aes(x = phase, y = n_found, color = phase))+
+  geom_point(alpha = 0.75, size = 3)+
+  geom_point(data = phase_means, aes(x=phase, y=mean_found, fill=phase),
+             size = 5, shape = 23)+
+  coord_flip()+
+  labs(x = "Moon Phase",
+       y = "Number of Amphibians Found")+
+  theme_bw()
+  
+```
+

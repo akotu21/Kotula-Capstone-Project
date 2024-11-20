@@ -1,0 +1,93 @@
+---
+title: "preliminary-analysis-1"
+format: html
+---
+
+#### Set Up Document
+
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+
+How does moon illumination effect the number of amphibians observed?
+
+In this question, we are exploring the relationship between two integers. The number of amphibians found is discrete data and and the percent moon illumination is continuous ratio data.
+
+When exploring the relationship between these data types, the best approach to use is a simple linear regression model.
+
+#### Read in data
+
+```{r}
+gad_totals <- read.csv(here("data", "gad_totals1.csv"))
+glimpse(gad_totals)
+```
+
+After viewing the dataset, you can see that several data types were read in as the wrong type. The `write.csv()` fucntion also created the useless X variable that can be removed. Date should be a dtae variable and phase should be a factor. These variables won't be used for this analysis but I will change them anyways.
+
+```{r}
+gad_totals <- gad_totals |>
+  select(-X) |>
+  mutate(Date = ymd(Date)) |>
+  mutate(phase = as.factor(phase))
+```
+
+
+#### plot the data
+
+I will start by making a simple scatterplot looking at the relationship between moon illumination and number of amphibians found.
+
+```{r}
+ggplot(gad_totals, aes(x = illum_pct, y = n_found))+
+  geom_point()+
+  theme_bw()
+```
+
+Based on this scatterplot,there doesn't seem to be a strong relationship between the number of amphibians found and moon illumination, however, this analysis doesn't yet account for survey effort.
+
+The y-intercept of the regression line is likely around 10.
+
+The slop of the line is likely a little higher than 0, maybe around 0.1.
+
+#### Build a model
+
+```{r}
+illum_model <- lm(n_found ~ illum_pct, data = gad_totals)
+```
+
+This model has an intercept of 9.93664 which is close to my prediction and a slope of 0.02186 which is lower than I expected.
+
+#### Check assumptions
+
+```{r}
+autoplot(illum_model)
+```
+
+The Residuals vs Fitted, Scale-Location, and Residuals vs Leverage plots all look good. The Normality plot, however, is not good and does not meet the assumption of normality.
+
+For sake of this project, I will continue the analaysis. Maybe a transformation can be applies to the data at a later stage of the project to fix this.
+
+#### Interpret results
+
+```{r}
+anova(illum_model)
+```
+
+Based on these results, we fail to reject the null hypothesis that there is no relationship between moon phase and number of amphibians found while surveying (F=0.3304, df=1, p=0.5662).
+
+Because there is no relaionship between the variables, the analysis endes here and I will not use the `summary()` function to look at significance of predictors.
+
+#### Plot Again
+
+```{r}
+ggplot(gad_totals, aes(illum_pct, n_found))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  labs(x = "Moon Illumination Percent",
+       y = "Number of Amphibians Found")+
+  theme_bw()
+```

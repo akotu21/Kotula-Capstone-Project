@@ -6,21 +6,22 @@ editor: visual
 
 ## Data Exploration Feedback
 
-1. data-reformatting.qmd - good to include this file! Nice
+1.  data-reformatting.qmd - good to include this file! Nice
 
-2. In that same file, Line 31 - there is also a lubridate function for ymd_hms that accounts for time inside of date-time objects, fyi so you could make that code a bit simpler.
+2.  In that same file, Line 31 - there is also a lubridate function for ymd_hms that accounts for time inside of date-time objects, fyi so you could make that code a bit simpler.
 
-Now in Data-preparation.qmd:
-3. Line 19 is better at describing your thought process, but which vars need to be made into factors and which vars will you be focused on?
+Now in Data-preparation.qmd: 3. Line 19 is better at describing your thought process, but which vars need to be made into factors and which vars will you be focused on?
 
-4. At line 81 I would think that you would check to see that the levels for your factors, at least for illum_percent and landclass, are ok.  That code is missing.
+4.  At line 81 I would think that you would check to see that the levels for your factors, at least for illum_percent and landclass, are ok. That code is missing.
 
+5.  Line 87 - which time variable?
 
-5. Line 87 - which time variable?
-
-6. Line 94 - I'd like to see that as scientific commentary outside of a code chunk and then begin a new chunk after is. As for an answer - can you use as your summarise:
+6.  Line 94 - I'd like to see that as scientific commentary outside of a code chunk and then begin a new chunk after is. As for an answer - can you use as your summarise:
 
 ```{r}
+library(tidyverse)
+library(here)
+gad <- read.csv(here("data", "gad_moon.csv"))
 gad_totals_new <- gad |>
   group_by(Date) |>
   summarise(
@@ -29,9 +30,9 @@ gad_totals_new <- gad |>
 
 Take a look and see if that gives you the correct results.
 
-7. When you plot individuals by date, you might want to add a column for Year as a nominal variable so that you can facet by year and see more detail by date within year.
+7.  When you plot individuals by date, you might want to add a column for Year as a nominal variable so that you can facet by year and see more detail by date within year.
 
-Here's a start, but you  may also want to constrain your Date column so that it only includes the months of interest, since students don't collect these data all year.
+Here's a start, but you may also want to constrain your Date column so that it only includes the months of interest, since students don't collect these data all year.
 
 ```{r}
 gad_totals_new <- gad |>
@@ -48,14 +49,4 @@ ggplot(gad_totals_new, aes(x = Date, y = n_found))+
 
 8.Since you seem to be observing (line 134) that the mean number found may not be different but that the variances may differ, you may wish to test for equality of VARIANCES (rather than means) using Bartlett's test or Levene's test as per [this website](https://www.sthda.com/english/wiki/compare-multiple-sample-variances-in-r)
 
-9. Good question about survey bias. Could you calculate your own statistic to take care of survey bias? I think so!  Also, to address the NAs one approach would be to use the Lat/Long fields and GIS to extract DEC land use classes from the gps coordinates in either QGIS or ArcGIS pro and then import the csv here.
-
-
-
-
-
-
-
-
-
-
+9.  Good question about survey bias. Could you calculate your own statistic to take care of survey bias? I think so! Also, to address the NAs one approach would be to use the Lat/Long fields and GIS to extract DEC land use classes from the gps coordinates in either QGIS or ArcGIS pro and then import the csv here.
