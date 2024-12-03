@@ -1,0 +1,70 @@
+---
+title: "prelim analysis feedback"
+format: html
+editor: visual
+---
+
+## Preliminary Analysis Feedback
+
+### General
+- You generally did a good job applying our workflow. 
+- I'd like to see you add some biology now.
+
+
+### analysis 1 - illumination and number amphibians
+
+-   Line 30 - if you include `row.names = F` as an argument when you use `write.csv` you will not get the annoying X column.
+
+- Line 45 - I think it would be good to also quickly plot a histogram of each of your variables. Your amphibian data are what we call "zero inflated" in that there are a lot of observations of 1 and most def do not fit a normal distribution.
+
+-   Line 54 - you can do better on estimating the slope by telling me the amount of rise vs. run. 
+
+- I'd like to see a clear null and alternative hypothesis statement with some biological justification. Why might we expect amphibian detection to depend on moon illumination?
+
+- Line 72 - you're going to want to read in Chapter 7 of the book on using glm with different "family" functions (likely poisson here) and with an eye toward dealing with zero-inflation.
+
+- Line 80, also give adjusted R2 value (will need `summary()` to get it)
+
+- With your interpretation of your model section, I'd like to also see some biological interpretation. Does it make sense that there is no relationship? In line 50, you say you are going to be accounting for survey effort - I wonder if that might be something causing a non-signficant difference here?
+
+### Moon phase as categorical and num amphibians observed.
+- Line 16 - think about stating this question a little differently, since your focuse will be on anova which compares means between groups: Does mean number of amphibians detected in surveys differ with moon phase? Also I again want to see some biology - if moon phase matters, when would you expect detections to be highest? Lowest? Why?
+
+- Line 18 - As with the regression,  your amphibian abundance data are non-normal, so you will need a `glm` analysis for this one as well.
+
+- Line 33 - you should make moon phase an *ordered* factor becasue the moon phases cycle in a particular order. Doing so will make them display in order in plots.
+
+- Line 46 - It would be good to do faceted histograms here, too, something like:
+
+```{r}
+ggplot(gad_totals, aes(n_found))+
+  geom_histogram()+
+  facet_wrap(~phase,ncol = 1)+
+  theme_bw()
+```
+Does a good job showing the non-normality of the data and helps to show the right-skew to the data.
+
+Sure seems like there's an outlier in first quarter...
+
+- Line 58 - Yep - problem, we'll look at it in class a bit but you'll also want to read Chapter 7.
+
+- I like your final plot much better in this one - good. It might be interesting to put a dashed vertical (taking into account coord_flip()) line showing the group mean (the mean across all moon phases).
+
+### Does land class affect species richness?
+Again, since you'll be looking at mean species richness values and are doing an anova, state the question a bit differently. See above for details.
+
+- Line 47 - I think you will need sp.richness.df2 because it has the replication per land class that R will need for the ANOVA.
+
+- Line 56 - Since your question is about means, I think a better plot would be group_by and summarise of sp.richness.df2 so that you can look at the means and standard errors or boxplot of these data.
+
+- Line 62 - does it make sense why the model didn't work with sp.richness.df? You need to have replication in order to calculate a mean for each treatment. So I'm not sure you need a different approach, and you were correct to switch to df2
+
+- Line 68 - I would argue that the data adhere to a linear model ok, but they certainly aren't normally distributed. Time for our friend glm! (Chapter 7!)
+
+- I like your final plot - how about adding the A or AB or B letters to the plot as well to show the differences? And why is NA present in the plot? Make sure that you got rid of the NA data for your analysis as well as for the plot.
+
+-Line 110 - regarding your note, I don't think it is a terrible mess. You have done much of the heavy lifting. The key will be to read Chapter 7 and try to apply the principles of glm and zero-inflation, where relevant, to your analyses.
+
+
+
+
