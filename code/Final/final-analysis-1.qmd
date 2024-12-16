@@ -1,0 +1,153 @@
+---
+title: "final-analysis-1"
+format: html
+---
+
+### Set Up
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+
+How does moon illumination effect the number of amphibians observed?
+
+In this question, we are exploring the relationship between two integers. The number of amphibians found is discrete data and and the percent moon illumination is continuous ratio data.
+
+I expect to find a positive relationship between moon illumination and number of amphibians observed because more light from the moon will allow amphibians to be more active at night and make amphibians more detectable to surveyors.
+
+When exploring the relationship between these data types, the best approach to use is a linear regression model.
+
+### Read in Data
+```{r}
+gad_totals <- read.csv(here("data", "gad_totals2.csv"))
+glimpse(gad_totals)
+```
+The dataset has 5 variables:
+X - a label created by the write.csv function, this will be removed from the dataset.
+Date - The date of an amphibian survey
+n_found - the number of amphibians found on a specicific date
+illum_pct - the percent illumination of the moon on said date
+phase - the phase of the moon on said date
+
+###Reformat variables
+Several variables are in the wrong format. Date should be a date data type, and phase should be an ordered factor.
+```{r}
+gad_totals <- gad_totals |>
+  mutate(Date = ymd(Date)) |>
+  mutate(phase = as.factor(phase)) |>
+  mutate(phase = fct_relevel(phase, 
+                             c("new",
+                               "waxing crescent",
+                               "first quarter",
+                               "waxing gibbous",
+                               "full",
+                               "waning gibbous",
+                               "last quarter",
+                               "waning crescent"))) |>
+  na.omit()
+```
+
+#### plot the data
+
+I will start by making a simple scatterplot looking at the relationship between moon illumination and number of amphibians found.
+
+```{r}
+ggplot(gad_totals, aes(x = illum_pct, y = n_found))+
+  geom_point()+
+  theme_bw()
+```
+
+Based on this scatterplot,there doesn't seem to be a linear relationship between number of amphibians found and percent of the moon illuminated. The data may also be zero-inflated, meaning there is a higher concentration of ones and zeros in the dataset. This could cause in issue with the analysis.
+
+I would estimate the intercept of the line to be around 8 and the slope of the trend line to be 0.2. I expect the slope of the trend line to be relatively close to 0 because it will be weighed down by all the zeroes.
+
+We can also make a histogram to check the distribution of the data.
+```{r}
+ggplot(gad_totals, aes(n_found))+
+  geom_histogram()
+```
+The histogram confirms the zero inflation of the dataset. It also shows that the data is heavily right skewed due to an outlier. 
+
+We can remove the outlier and remake the histogram.
+```{r}
+gad_totals <- gad_totals |>
+  filter(n_found < 100)
+
+ggplot(gad_totals, aes(n_found))+
+  geom_histogram()
+```
+
+Because the data doesn't seem to have a linear relationship and is not normally distributed, we can use a generalized linear model (GLM) to explore the relationship in the data. 
+
+### Build a model
+Make a generalized liner model. 
+```{r}
+illum_model <- glm(n_found ~ illum_pct, data = gad_totals, family = poisson)
+```
+
+The model has an intercept of 8.64625 and a slope of 0.03168 indicating a weak positive relationship between variables.
+
+### check assumptions
+```{r}
+autoplot(illum_model)
+```
+The plots show that the model doesn't pass the assumptions required for a linear model, so a generalized linear model is the correct choice.
+
+### interpret the model
+```{r}
+anova(illum_model, test="Chisq")
+
+summary(illum_model)
+```
+
+There is a very high residual deviance in comparison to the very low p-value which indicates an issue with zero inflation.
+
+The results indicate a very weak correlation between moon illumination and number of amphibians found (p=2.42e-05). The total deviance of the data (amphibians found) is 1776.5, while the deviance explained by moon illumination is 17.826. This means that moon illumination accounts for only 1.0051% of the deviation in amphibians found.  This means we can reject the null hypothesis that there is no association between moon illumination and amphibian activity. This could be a result of higher visibility on nights with high illumination allowing amphibians to be more active. This could also be a result of amphibians being easier to detect by surveyors on nights with high illumination. 
+
+###plot again
+
+We use `expand.grid()` to generate a set of "new x" values remembering to name the single column the same as in the original data set (`illum_pct`)
+```{r}
+min.size <- min(gad_totals$illum_pct)
+max.size <- max(gad_totals$illum_pct)
+```
+
+Now make the new illum_pct column
+```{r}
+
+new.x <- expand.grid(illum_pct = seq(min.size, max.size,length = 1000))
+```
+
+Now we can generate the fits and standard errors at new.x values
+```{r}
+new.y <- predict(illum_model, newdata = new.x, se.fit = T)
+new.y <- data.frame(new.y)
+```
+
+Now we can generate the fits and standard errors at new.x values
+```{r}
+addThese <- data.frame(new.x, new.y)
+```
+
+Now we need to put the new x values and new y values together into the same data frame. We have to apply a transformation because the glm is log scaled, we have to undo that.
+```{r}
+addThese <- mutate(addThese, 
+                   n_found = exp(fit),
+                   lwr = exp(fit - 1.96 * se.fit),
+                   upr = exp(fit + 1.96 * se.fit))
+head(addThese)
+```
+
+Now we can plot
+```{r}
+ggplot(gad_totals, aes(x = illum_pct, y = n_found))+
+  geom_point(size = 3, alpha = 0.5)+
+  #now add the fits and the CIs 
+  geom_smooth(data = addThese, aes(ymin = lwr, ymax = upr), stat = "identity")+
+  theme_bw()
+```
+

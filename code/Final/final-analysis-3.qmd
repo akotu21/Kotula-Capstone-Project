@@ -1,0 +1,90 @@
+---
+title: "final-analysis-3"
+format: html
+---
+
+#### Set Up Document
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+How does land class effect species richness of a survey?
+
+For this question, we are exploring the relationship between a quantitative variable and a categorical variable. Species richness is a discrete variable and land class is a nominal categorical variable.
+
+For this analysis, we will be using one-way ANOVA to explore the relationship between our variables.
+
+### Read in data
+For this analysis we need to work with the whole gad_moon.csv dataset. We will need to use dplyr functions to create a species richness variable.
+```{r}
+gad <- read.csv(here("data", "gad_moon.csv"))
+
+sp.richness.df2 <- gad |>
+  group_by(LandClass, SpeciesName, Date) |>
+  summarise(n_individuals = n()) |> 
+  ungroup() |>
+  group_by(LandClass, Date) |>
+  summarise(SpeciesRichness = n()) |>
+  na.omit() |> 
+  mutate(LandClass = as.factor(LandClass))
+```
+
+The code for sp.richness.df2 creates observations per date per landclass. It also removes all na values and puts the variables into the correct data types.
+
+####plot the data
+
+Make a boxplot of the means and standard deviations of each group.
+```{r}
+ggplot(sp.richness.df2, aes(LandClass, SpeciesRichness))+
+  geom_boxplot()+
+  coord_flip()
+```
+There is a clear difference in means between the groups. some of the groups have far fewer observations than others.
+
+```{r}
+ggplot(sp.richness.df2, aes(SpeciesRichness))+
+  geom_histogram()+
+  facet_wrap(~LandClass,
+             ncol = 1)+
+  theme()
+```
+The data is not normally distributed, so a GLM should be used rather than a general linear model.
+
+#### build a model
+```{r}
+sr.glm <- glm(SpeciesRichness ~ LandClass, data = sp.richness.df2, family = poisson)
+```
+
+#### check assumptions
+```{r}
+autoplot(sr.glm)
+```
+The plot doesn't meet the assumptions for a regular linear model so using a glm was correct.
+
+#### evaluate the model
+```{r}
+anova(sr.glm, test = "Chisq")
+```
+
+The total deviance of the data is 174.53, while the amount of deviance explained by land class is 26.375. This means that 15.112% of deviance in the species richness can be explained by land class.
+
+
+#### plot again
+I want to get the mean species richness/date to add to the plot
+```{r}
+sr_means <- sp.richness.df2 |>
+  group_by(LandClass) |>
+  summarise(mean.sr = mean(SpeciesRichness)) 
+
+ggplot(data = sp.richness.df2, aes(x = LandClass, y = SpeciesRichness))+
+  geom_point(aes(color = LandClass))+
+  geom_point(data = sr_means, aes(x = LandClass, y = mean.sr,
+                                  fill = LandClass),
+             size = 5, shape = 23)+
+  coord_flip()+
+  theme_bw()
+```

@@ -12,7 +12,7 @@ library(ggfortify)
 ```
 
 ### The Question
-How does land class effect species richness of a survey?
+How does mean species richness differ between DEC land class types?
 
 For this question, we are exploring the relationship between a quantitative variable and a categorical variable. Species richness is a discrete variable and land class is a nominal categorical variable.
 

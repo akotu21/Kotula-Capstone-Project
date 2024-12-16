@@ -1,0 +1,170 @@
+---
+title: "final-analysis-2.qmd"
+format: html
+---
+
+#### Set Up Document
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+```
+
+### The Question
+
+How does mean number of amphibians observed differ between moon phases?
+
+I expect the mean number of amphibians observed to be highest on the full moon and lowest on the new moon, with counts increasing as we approach the full moon and counts decreasing as we approach the new moon. I expect this because the moon is more illuminated closer to a full moon, providing more light and higher visibility making amphibians easier to detect.
+
+In this question we are exploring the relationship between a categorical variable and a quantitative variable. Moon phase is a nominal categorical variable and number of amphibians observed is a discrete data type.
+
+When exploring relationships between one categorical predictor and a quantitative response, you can use a one-way ANOVA test.
+
+#### Read in data
+I need to use my gad_totals dataset for this analysis.
+```{r}
+gad_totals <- read.csv(here("data", "gad_totals2.csv"))
+glimpse(gad_totals)
+```
+The dataset has 5 variables:
+X - a label created by the write.csv function, this will be removed from the dataset.
+Date - The date of an amphibian survey
+n_found - the number of amphibians found on a specicific date
+illum_pct - the percent illumination of the moon on said date
+phase - the phase of the moon on said date
+
+#### Reformat the data
+I have to make the same changes I made in the first analysis and remove the one entry with NA values.
+```{r}
+gad_totals <- gad_totals |>
+  mutate(Date = ymd(Date)) |>
+  mutate(phase = as.factor(phase)) |>
+  mutate(phase = fct_relevel(phase, 
+                             c("new",
+                               "waxing crescent",
+                               "first quarter",
+                               "waxing gibbous",
+                               "full",
+                               "waning gibbous",
+                               "last quarter",
+                               "waning crescent"))) |>
+  na.omit()
+```
+
+####plot the data
+I'll start by making a boxplot to view the relationship between moon phase and amphibians found and estimate the group means.
+```{r}
+ggplot(gad_totals, aes(x = phase, y = n_found))+
+  geom_boxplot()+
+  geom_point()+
+  coord_flip()+
+  theme_bw()
+```
+There is a major outlier in first quarter, I'll remove that and replot.
+```{r}
+gad_totals <- gad_totals |> filter(n_found < 100)
+  
+ggplot(gad_totals, aes(x = phase, y = n_found))+
+  geom_boxplot()+
+  geom_point()+
+  coord_flip()+
+  theme_bw()
+```
+Now I can estimate the mean for each group
+- waning crescent ~ 4
+- last quarter ~ 5.5
+- waning gibbous ~ 3.8
+- full ~ 4
+- waxing gibbous ~ 6
+- first quarter ~ 6
+- waxing crescent ~ 3.6
+- new ~ 7
+
+There doesn't seem to be to much of a difference between group means. Interestingly the new moon seems to have the highest mean number of amphibians observed which goes against my prediction I made earlier.
+
+I'll also make a faceted histogram to look at the distribution of the data between groups.
+```{r}
+ggplot(gad_totals, aes(n_found))+
+  geom_histogram()+
+  facet_wrap(~phase,ncol = 1)+
+  theme_bw()
+```
+
+The distribution between groups does not appear to be normally distributed, instead it appears skewed to the right.
+
+
+
+#### construct a model
+
+Because the data isn't normally distributed, I need to make a glm model with a poisson family distribution.
+```{r}
+phase_model <- glm(n_found ~ phase, data = gad_totals, family = poisson)
+```
+
+#### check assuptions
+```{r}
+autoplot(phase_model)
+```
+
+The plots show that the model wouldn't fit the assumptions for a general linear model which means I was right to chose a GLM. 
+
+#### evaluate the model 
+```{r}
+anova(phase_model, test = "Chisq")
+```
+the anova window shows that the total deviance of the data is 1776.5, and the amount of deviance that can be attributed to moon phase is 97.377. This means that 5.4813% of the deviance in number of amphibians found can be attributed to moon phase (p2.2e-16). The low p-value and high total deviance indicates and issue in the dataset with zero inflation.
+
+```{r}
+summary(phase_model)
+```
+The summary shows that the number of amphibians observed the waxing crescent and waning crescent phases have a highly significantly different mean number of observations than the new moon phase. There is a less significant difference in means from the new moon during the first quarter and full moon phases.
+
+#### post hoc tests
+We need to do post hoc tests for multiple comparison of means to see the full groupings. For this, we must load in the `multcomp` package.
+```{r}
+library(multcomp)
+```
+
+We can use `multcomp` to conduct a Tukey's honestly signifcant difference test.
+```{r}
+phc1 <- glht(phase_model, linfct =mcp(phase = "Tukey"))
+summary(phc1)
+```
+This longer output shows which groups are significantly differnt from eachother, for a shorter output with groupings, we can ask for a compact letter display.
+```{r}
+cld(phc1)
+```
+
+In this output, groups that share letters are not significantly different from each other. Different letters indicate significant difference.
+
+ab - new, waxing crescent, waning gibbous, last quarter
+ac - first quarter
+bd - full
+c - waxing gibbous
+d - waning crescent
+
+Ex. group ab is not different from ac or bd, but is different from groups c and d.
+
+####plot again
+
+To make an improved plot, I need a dataset that just includes the mean for each group.
+```{r}
+phase_means <- gad_totals |>
+  group_by(phase) |>
+  summarise(mean_found = mean(n_found))
+```
+
+Now I can plot the data.
+```{r}
+ggplot(data = gad_totals, aes(x = phase, y = n_found, color = phase))+
+  geom_point(alpha = 0.75, size = 3)+
+  geom_point(data = phase_means, aes(x=phase, y=mean_found, fill=phase),
+             size = 5, shape = 23)+
+  coord_flip()+
+  labs(x = "Moon Phase",
+       y = "Number of Amphibians Found")+
+  theme_bw()
+  
+```
+

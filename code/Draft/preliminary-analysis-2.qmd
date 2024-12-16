@@ -25,13 +25,13 @@ I need to use my gad_totals dataset for this analysis.
 gad_totals <- read.csv(here("data", "gad_totals1.csv"))
 glimpse(gad_totals)
 ```
-Like in the first analysis, the dataset needs cleaned up. This time it is important that the phase variable is a factor rather than a character data type. I will also remove X and fix the time variable. When looking at the full dataset, there is a row at the end with data only for count, I'll also remove that point.
+Like in the first analysis, the dataset needs cleaned up. This time it is important that the phase variable is a factor rather than a character data type. I will also remove X and fix the time variable. When looking at the full dataset, there is a row at the end with data only for count that has many NAs I'll also remove that point.
 ```{r}
 gad_totals <- gad_totals |>
   select(-X) |>
   mutate(Date = ymd(Date)) |>
   mutate(phase = as.factor(phase)) |>
-  slice(1:154)
+  na.omit()
 ```
 
 #### plot the data

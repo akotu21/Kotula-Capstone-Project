@@ -27,13 +27,17 @@ gad_totals <- read.csv(here("data", "gad_totals1.csv"))
 glimpse(gad_totals)
 ```
 
-After viewing the dataset, you can see that several data types were read in as the wrong type. The `write.csv()` fucntion also created the useless X variable that can be removed. Date should be a dtae variable and phase should be a factor. These variables won't be used for this analysis but I will change them anyways.
+After viewing the dataset, you can see that several data types were read in as the wrong type. The `write.csv()` fucntion also created the useless X variable that can be removed. Date should be a date variable and phase should be a factor. These variables won't be used for this analysis but I will change them anyways.
 
 ```{r}
 gad_totals <- gad_totals |>
   select(-X) |>
   mutate(Date = ymd(Date)) |>
   mutate(phase = as.factor(phase))
+
+write.csv(gad_totals, 
+          file = here("data/gad_totals2.csv"), 
+          row.names = F)
 ```
 
 
@@ -74,7 +78,7 @@ For sake of this project, I will continue the analaysis. Maybe a transformation 
 #### Interpret results
 
 ```{r}
-anova(illum_model)
+anova(illum_model, test = "Chisq")
 ```
 
 Based on these results, we fail to reject the null hypothesis that there is no relationship between moon phase and number of amphibians found while surveying (F=0.3304, df=1, p=0.5662).
