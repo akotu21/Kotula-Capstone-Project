@@ -103,10 +103,11 @@ anova(illum_model, test="Chisq")
 
 summary(illum_model)
 ```
+*to find r-squared 1758.7/1776.5x100 line explains 2% of variation, residual deviance is the variation not explained by the predictor*
 
 There is a very high residual deviance in comparison to the very low p-value which indicates an issue with zero inflation.
 
-The results indicate a very weak correlation between moon illumination and number of amphibians found (p=2.42e-05). The total deviance of the data (amphibians found) is 1776.5, while the deviance explained by moon illumination is 17.826. This means that moon illumination accounts for only 1.0051% of the deviation in amphibians found.  This means we can reject the null hypothesis that there is no association between moon illumination and amphibian activity. This could be a result of higher visibility on nights with high illumination allowing amphibians to be more active. This could also be a result of amphibians being easier to detect by surveyors on nights with high illumination. 
+The results indicate a very weak correlation between moon illumination and number of amphibians found (p=2.42e-05). The total deviance of the data (amphibians found) is 1776.5, while the deviance of  moon illumination is 1758.7. This means that moon illumination accounts for only 1.0020% of the deviation in amphibians found.  This means we can reject the null hypothesis that there is no association between moon illumination and amphibian activity. This could be a result of higher visibility on nights with high illumination allowing amphibians to be more active. This could also be a result of amphibians being easier to detect by surveyors on nights with high illumination. 
 
 ###plot again
 

@@ -18,7 +18,7 @@ For this question, we are exploring the relationship between a quantitative vari
 
 For this analysis, we will be using one-way ANOVA to explore the relationship between our variables.
 
-### Read in data
+#### Read in data
 For this analysis we need to work with the whole gad_moon.csv dataset. We will need to use dplyr functions to create a species richness variable.
 ```{r}
 gad <- read.csv(here("data", "gad_moon.csv"))
@@ -35,18 +35,46 @@ sp.richness.df2 <- gad |>
 
 The code for sp.richness.df2 creates observations per date per landclass. It also removes all na values and puts the variables into the correct data types.
 
-####plot the data
+#### plot the data
 
 Make a boxplot of the means and standard deviations of each group.
 ```{r}
 ggplot(sp.richness.df2, aes(LandClass, SpeciesRichness))+
   geom_boxplot()+
   coord_flip()
-```
-There is a clear difference in means between the groups. some of the groups have far fewer observations than others.
 
+#group the ones with one variable into other
+```
+There is a clear difference in means between the groups. some of the groups have far fewer observations than others. I will combine the groupings that have too few observations and reasses. DevOpen will be combine with DevMed, DevLow, and DevHigh to form a new category called Developed. OpenWater, Mixed Forest, and EmergHerbWet will go into an "Other" category. 
 ```{r}
-ggplot(sp.richness.df2, aes(SpeciesRichness))+
+sp.richness.df2.grouped <- sp.richness.df2 |> 
+  mutate(LandClass = fct_collapse(LandClass, Developed = c("DevOpen",
+                                                           "DevMed",
+                                                           "DevLow",
+                                                           "DevHigh"))) |>
+  mutate(LandClass = fct_collapse(LandClass, Other = c("OpenWater",
+                                                   "MixedForest",
+                                                   "EmergHerbWet")))
+  
+```
+
+Now I can replot
+```{r}
+ggplot(sp.richness.df2.grouped, aes(LandClass, SpeciesRichness))+
+  geom_boxplot()+
+  coord_flip()
+```
+The developed category looks good, the other category still isn't great but I'll work with it. Now I can estimate the group mean species richness/survey.
+WoodWet - 2.1
+PastHay - 0.8
+EvergForest - 1.4
+Other - 0.8
+Developed - 0.8
+DecidForest - 2.1
+
+I also want to look at the distribution of the data.
+```{r}
+ggplot(sp.richness.df2.grouped, aes(SpeciesRichness))+
   geom_histogram()+
   facet_wrap(~LandClass,
              ncol = 1)+
@@ -56,31 +84,33 @@ The data is not normally distributed, so a GLM should be used rather than a gene
 
 #### build a model
 ```{r}
-sr.glm <- glm(SpeciesRichness ~ LandClass, data = sp.richness.df2, family = poisson)
+sr.glm <- glm(SpeciesRichness ~ LandClass, data = sp.richness.df2.grouped, family = poisson)
 ```
 
 #### check assumptions
 ```{r}
 autoplot(sr.glm)
 ```
-The plot doesn't meet the assumptions for a regular linear model so using a glm was correct.
+The plot doesn't meet the assumptions for a regular linear model so using a glm was correct. The normality assumption is very shaky, likely due to zero inflation in the data.
 
 #### evaluate the model
 ```{r}
 anova(sr.glm, test = "Chisq")
+
+summary(sr.glm)
 ```
 
-The total deviance of the data is 174.53, while the amount of deviance explained by land class is 26.375. This means that 15.112% of deviance in the species richness can be explained by land class.
+The total deviance of the data is 174.53, while the amount of deviance in the land class is 168.78 This means that 3.2% of deviance in the species richness can be explained by land class. The p-value is also very high (p=0.3314) so we fail to reject the null hypothesis that there is no association between DEC land class and species richness per survey.
 
 
 #### plot again
 I want to get the mean species richness/date to add to the plot
 ```{r}
-sr_means <- sp.richness.df2 |>
+sr_means <- sp.richness.df2.grouped |>
   group_by(LandClass) |>
   summarise(mean.sr = mean(SpeciesRichness)) 
 
-ggplot(data = sp.richness.df2, aes(x = LandClass, y = SpeciesRichness))+
+ggplot(data = sp.richness.df2.grouped, aes(x = LandClass, y = SpeciesRichness))+
   geom_point(aes(color = LandClass))+
   geom_point(data = sr_means, aes(x = LandClass, y = mean.sr,
                                   fill = LandClass),

@@ -113,7 +113,7 @@ The plots show that the model wouldn't fit the assumptions for a general linear 
 ```{r}
 anova(phase_model, test = "Chisq")
 ```
-the anova window shows that the total deviance of the data is 1776.5, and the amount of deviance that can be attributed to moon phase is 97.377. This means that 5.4813% of the deviance in number of amphibians found can be attributed to moon phase (p2.2e-16). The low p-value and high total deviance indicates and issue in the dataset with zero inflation.
+the anova window shows that the total deviance of the data is 1776.5, and the amount of deviance of moon phase is 1679.2. This means that 5.4813% of the deviance in number of amphibians found can be attributed to moon phase (p2.2e-16). The low p-value and high total deviance indicates and issue in the dataset with zero inflation.
 
 ```{r}
 summary(phase_model)
@@ -157,14 +157,17 @@ phase_means <- gad_totals |>
 
 Now I can plot the data.
 ```{r}
-ggplot(data = gad_totals, aes(x = phase, y = n_found, color = phase))+
-  geom_point(alpha = 0.75, size = 3)+
+ggplot(data = gad_totals, aes(x = phase, y = n_found))+
+  geom_point(alpha = 0.75, size = 3, aes(color = phase))+
   geom_point(data = phase_means, aes(x=phase, y=mean_found, fill=phase),
              size = 5, shape = 23)+
   coord_flip()+
   labs(x = "Moon Phase",
        y = "Number of Amphibians Found")+
+  annotate("text", size = 2.5,
+           x = c(1, 2, 3, 4, 5, 6, 7, 8),
+           y = c(9.88, 10, 11.9, 14.7, 8, 10.9, 9.47, 5.75),
+           label = c("AB", "AB", "AC", "C", "BD", "AB", "AB", "D"))+
   theme_bw()
   
 ```
-
