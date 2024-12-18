@@ -19,14 +19,7 @@ phase and illumination to the dataset for my analysis. I did this by
 downloading a dataset containing calculated moon phase and illumination
 by date. I was able to use the date variable as a key to join the moon
 data to the amphibian decline survey data using a `left_join()` The
-final dataset contains 1706 observations of 36 variables, although there
-are very few complete cases in the dataset. For my analyses, I had to
-make additional datasets using `group_by()` and `summarise()`. The
-gad_totals dataset contains the number of amphibians found on each date
-with the corresponding moon phase and moon illumination for each date. I
-used this for my first two analyses. The sp.richness.df2 dataset
-includes the number of species found per survey (date) with the
-corresponding land class for each survey. I used this for my third
+final dataset contains 1706 observations of 36 variables, although there are very few complete cases in the dataset. For my analyses, I had to make additional datasets using `group_by()` and `summarise()`. The gad_totals dataset contains the number of amphibians found on each date with the corresponding moon phase and moon illumination for each date. I used this for my first two analyses. The sp.richness.df2 dataset includes the number of species found per survey (date) with the corresponding land class for each survey. I used this for my third
 analysis.
 
 ## Analyses
