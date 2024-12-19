@@ -19,7 +19,14 @@ phase and illumination to the dataset for my analysis. I did this by
 downloading a dataset containing calculated moon phase and illumination
 by date. I was able to use the date variable as a key to join the moon
 data to the amphibian decline survey data using a `left_join()` The
-final dataset contains 1706 observations of 36 variables, although there are very few complete cases in the dataset. For my analyses, I had to make additional datasets using `group_by()` and `summarise()`. The gad_totals dataset contains the number of amphibians found on each date with the corresponding moon phase and moon illumination for each date. I used this for my first two analyses. The sp.richness.df2 dataset includes the number of species found per survey (date) with the corresponding land class for each survey. I used this for my third
+final dataset contains 1706 observations of 36 variables, although there
+are very few complete cases in the dataset. For my analyses, I had to
+make additional datasets using `group_by()` and `summarise()`. The
+gad_totals dataset contains the number of amphibians found on each date
+with the corresponding moon phase and moon illumination for each date. I
+used this for my first two analyses. The sp.richness.df2 dataset
+includes the number of species found per survey (date) with the
+corresponding land class for each survey. I used this for my third
 analysis.
 
 ## Analyses
@@ -27,6 +34,7 @@ analysis.
 ## First Analysis
 
 #### Set Up
+
 ```{r}
 rm(list = ls())
 library(tidyverse)
@@ -38,16 +46,22 @@ library(ggfortify)
 
 How does moon illumination effect the number of amphibians observed?
 
-Null Hypothesis: There is no association between moon illumination and number of amphibains observed.
+Null Hypothesis: There is no association between moon illumination and
+number of amphibains observed.
 
-Alternate Hypothesis: There is an association between moon illumination and number of amphibians observed.
+Alternate Hypothesis: There is an association between moon illumination
+and number of amphibians observed.
 
 In this question, we are exploring the relationship between two
 integers. The number of amphibians found is discrete data and and the
 percent moon illumination is continuous ratio data.
 
 I expect to find a positive relationship between moon illumination and
-number of amphibians observed. Several species of amphibian, including the Fowler's Toad, rely on the moon for navigation and orientation (Ferguson and Landreth, 1966). More light from the moon will allow amphibians to be more active at night and make amphibians more detectable to surveyors. 
+number of amphibians observed. Several species of amphibian, including
+the Fowler's Toad, rely on the moon for navigation and orientation
+(Ferguson and Landreth, 1966). More light from the moon will allow
+amphibians to be more active at night and make amphibians more
+detectable to surveyors.
 
 When exploring the relationship between these data types, the best
 approach to use is a linear regression model.
@@ -65,8 +79,10 @@ amphibian survey n_found - the number of amphibians found on a
 specicific date illum_pct - the percent illumination of the moon on said
 date phase - the phase of the moon on said date
 
-#### Reformat variables 
-Several variables are in the wrong format. Date should be a date data type, and phase should be an ordered factor.
+#### Reformat variables
+
+Several variables are in the wrong format. Date should be a date data
+type, and phase should be an ordered factor.
 
 ```{r}
 gad_totals <- gad_totals |>
@@ -169,7 +185,7 @@ reject the null hypothesis that there is no association between moon
 illumination and amphibian activity. This could be a result of higher
 visibility on nights with high illumination allowing amphibians to be
 more active. This could also be a result of amphibians being easier to
-detect by surveyors on nights with high illumination. 
+detect by surveyors on nights with high illumination.
 
 ###plot again
 
@@ -225,7 +241,9 @@ ggplot(gad_totals, aes(x = illum_pct, y = n_found))+
 ```
 
 ## Second Analysis
+
 reset the global environment
+
 ```{r}
 rm(list = ls())
 ```
@@ -234,31 +252,47 @@ rm(list = ls())
 
 How does mean number of amphibians observed differ between moon phases?
 
-Null hypothesis: There is no association between moon phase and mean number of amphibians observed.
+Null hypothesis: There is no association between moon phase and mean
+number of amphibians observed.
 
-Alternate hypothesis: There is an association between moon phase and mean number of amphibians observed.
+Alternate hypothesis: There is an association between moon phase and
+mean number of amphibians observed.
 
-I expect the mean number of amphibians observed to be highest on the full moon and lowest on the new moon, with counts increasing as we approach the full moon and counts decreasing as we approach the new moon. I expect this because many amphibian species react to the full moon, increasing calling frequency and increasing movement, making them more detectable to surveyors (Grant et al. 2013).
+I expect the mean number of amphibians observed to be highest on the
+full moon and lowest on the new moon, with counts increasing as we
+approach the full moon and counts decreasing as we approach the new
+moon. I expect this because many amphibian species react to the full
+moon, increasing calling frequency and increasing movement, making them
+more detectable to surveyors (Grant et al. 2013).
 
-In this question we are exploring the relationship between a categorical variable and a quantitative variable. Moon phase is a nominal categorical variable and number of amphibians observed is a discrete data type.
+In this question we are exploring the relationship between a categorical
+variable and a quantitative variable. Moon phase is a nominal
+categorical variable and number of amphibians observed is a discrete
+data type.
 
-When exploring relationships between one categorical predictor and a quantitative response, you can use a one-way ANOVA test.
+When exploring relationships between one categorical predictor and a
+quantitative response, you can use a one-way ANOVA test.
 
 #### Read in data
+
 I need to use my gad_totals dataset for this analysis.
+
 ```{r}
 gad_totals <- read.csv(here("data", "gad_totals2.csv"))
 glimpse(gad_totals)
 ```
-The dataset has 5 variables:
-X - a label created by the write.csv function, this will be removed from the dataset.
-Date - The date of an amphibian survey
-n_found - the number of amphibians found on a specicific date
-illum_pct - the percent illumination of the moon on said date
-phase - the phase of the moon on said date
+
+The dataset has 5 variables: X - a label created by the write.csv
+function, this will be removed from the dataset. Date - The date of an
+amphibian survey n_found - the number of amphibians found on a
+specicific date illum_pct - the percent illumination of the moon on said
+date phase - the phase of the moon on said date
 
 #### Reformat the data
-I have to make the same changes I made in the first analysis and remove the one entry with NA values.
+
+I have to make the same changes I made in the first analysis and remove
+the one entry with NA values.
+
 ```{r}
 gad_totals <- gad_totals |>
   mutate(Date = ymd(Date)) |>
@@ -276,7 +310,10 @@ gad_totals <- gad_totals |>
 ```
 
 #### plot the data
-I'll start by making a boxplot to view the relationship between moon phase and amphibians found and estimate the group means.
+
+I'll start by making a boxplot to view the relationship between moon
+phase and amphibians found and estimate the group means.
+
 ```{r}
 ggplot(gad_totals, aes(x = phase, y = n_found))+
   geom_boxplot()+
@@ -284,7 +321,9 @@ ggplot(gad_totals, aes(x = phase, y = n_found))+
   coord_flip()+
   theme_bw()
 ```
+
 There is a major outlier in first quarter, I'll remove that and replot.
+
 ```{r}
 gad_totals <- gad_totals |> filter(n_found < 100)
   
@@ -294,19 +333,18 @@ ggplot(gad_totals, aes(x = phase, y = n_found))+
   coord_flip()+
   theme_bw()
 ```
-Now I can estimate the mean for each group
-- waning crescent ~ 4
-- last quarter ~ 5.5
-- waning gibbous ~ 3.8
-- full ~ 4
-- waxing gibbous ~ 6
-- first quarter ~ 6
-- waxing crescent ~ 3.6
-- new ~ 7
 
-There doesn't seem to be to much of a difference between group means. Interestingly the new moon seems to have the highest mean number of amphibians observed which goes against my prediction I made earlier.
+Now I can estimate the mean for each group - waning crescent \~ 4 - last
+quarter \~ 5.5 - waning gibbous \~ 3.8 - full \~ 4 - waxing gibbous \~
+6 - first quarter \~ 6 - waxing crescent \~ 3.6 - new \~ 7
 
-I'll also make a faceted histogram to look at the distribution of the data between groups.
+There doesn't seem to be to much of a difference between group means.
+Interestingly the new moon seems to have the highest mean number of
+amphibians observed which goes against my prediction I made earlier.
+
+I'll also make a faceted histogram to look at the distribution of the
+data between groups.
+
 ```{r}
 ggplot(gad_totals, aes(n_found))+
   geom_histogram()+
@@ -314,64 +352,92 @@ ggplot(gad_totals, aes(n_found))+
   theme_bw()
 ```
 
-The distribution between groups does not appear to be normally distributed, instead it appears skewed to the right.
-
-
+The distribution between groups does not appear to be normally
+distributed, instead it appears skewed to the right.
 
 #### construct a model
 
-Because the data isn't normally distributed, I need to make a glm model with a poisson family distribution.
+Because the data isn't normally distributed, I need to make a glm model
+with a poisson family distribution.
+
 ```{r}
 phase_model <- glm(n_found ~ phase, data = gad_totals, family = poisson)
 ```
 
 #### check assuptions
+
 ```{r}
 autoplot(phase_model)
 ```
 
-The plots show that the model wouldn't fit the assumptions for a general linear model which means I was right to chose a GLM. 
+The plots show that the model wouldn't fit the assumptions for a general
+linear model which means I was right to chose a GLM.
 
-#### evaluate the model 
+#### evaluate the model
+
 ```{r}
 anova(phase_model, test = "Chisq")
 ```
-the anova window shows that the total deviance of the data is 1776.5, and the amount of deviance of moon phase is 1679.2. This means that 5.4813% of the deviance in number of amphibians found can be attributed to moon phase (p2.2e-16). The low p-value and high total deviance indicates and issue in the dataset with zero inflation.
+
+the anova window shows that the total deviance of the data is 1776.5,
+and the amount of deviance of moon phase is 1679.2. This means that
+5.4813% of the deviance in number of amphibians found can be attributed
+to moon phase (p2.2e-16). The low p-value and high total deviance
+indicates and issue in the dataset with zero inflation.
 
 ```{r}
 summary(phase_model)
 ```
-The summary shows that the number of amphibians observed the waxing crescent and waning crescent phases have a highly significantly different mean number of observations than the new moon phase. There is a less significant difference in means from the new moon during the first quarter and full moon phases. This can be explained by different amphibian species reacting differently to different moon phases. Amphibian response to the lunar cycle is highly species specific, and many amphibians were observed during surveying (Grant et al. 2013).
+
+The summary shows that the number of amphibians observed the waxing
+crescent and waning crescent phases have a highly significantly
+different mean number of observations than the new moon phase. There is
+a less significant difference in means from the new moon during the
+first quarter and full moon phases. This can be explained by different
+amphibian species reacting differently to different moon phases.
+Amphibian response to the lunar cycle is highly species specific, and
+many amphibians were observed during surveying (Grant et al. 2013).
 
 #### post hoc tests
-We need to do post hoc tests for multiple comparison of means to see the full groupings. For this, we must load in the `multcomp` package.
+
+We need to do post hoc tests for multiple comparison of means to see the
+full groupings. For this, we must load in the `multcomp` package.
+
 ```{r}
 library(multcomp)
 ```
 
-We can use `multcomp` to conduct a Tukey's honestly signifcant difference test.
+We can use `multcomp` to conduct a Tukey's honestly signifcant
+difference test.
+
 ```{r}
 phc1 <- glht(phase_model, linfct =mcp(phase = "Tukey"))
 summary(phc1)
 ```
-This longer output shows which groups are significantly differnt from eachother, for a shorter output with groupings, we can ask for a compact letter display.
+
+This longer output shows which groups are significantly differnt from
+eachother, for a shorter output with groupings, we can ask for a compact
+letter display.
+
 ```{r}
 cld(phc1)
 ```
 
-In this output, groups that share letters are not significantly different from each other. Different letters indicate significant difference.
+In this output, groups that share letters are not significantly
+different from each other. Different letters indicate significant
+difference.
 
-ab - new, waxing crescent, waning gibbous, last quarter
-ac - first quarter
-bd - full
-c - waxing gibbous
-d - waning crescent
+ab - new, waxing crescent, waning gibbous, last quarter ac - first
+quarter bd - full c - waxing gibbous d - waning crescent
 
-Ex. group ab is not different from ac or bd, but is different from groups c and d.
+Ex. group ab is not different from ac or bd, but is different from
+groups c and d.
 
 #### plot again
 
-To make an improved plot, I need a dataset that just includes the mean for each group.
+To make an improved plot, I need a dataset that just includes the mean
+for each group.
+
 ```{r}
 phase_means <- gad_totals |>
   group_by(phase) |>
@@ -379,6 +445,7 @@ phase_means <- gad_totals |>
 ```
 
 Now I can plot the data.
+
 ```{r}
 ggplot(data = gad_totals, aes(x = phase, y = n_found))+
   geom_point(alpha = 0.75, size = 3, aes(color = phase))+
@@ -396,26 +463,42 @@ ggplot(data = gad_totals, aes(x = phase, y = n_found))+
 ```
 
 ## Third Analysis
+
 reset the global environment
+
 ```{r}
 rm(list = ls())
 ```
 
 ### The Question
+
 How does land class effect species richness of a survey?
 
-Null Hypothesis: There is no association between land class and species richness.
+Null Hypothesis: There is no association between land class and species
+richness.
 
-Alternate Hypothesis: There is an association between land class and species richness.
+Alternate Hypothesis: There is an association between land class and
+species richness.
 
-I expect to see a higher species richness in undeveloped land classes opposed to developed land class. Amphibians are highly sensitive to disturbance and very few amphibian species are generalists, so there should be more aphibians observed in undeveloped habitat types (Luedtke et al., 2023). 
+I expect to see a higher species richness in undeveloped land classes
+opposed to developed land class. Amphibians are highly sensitive to
+disturbance and very few amphibian species are generalists, so there
+should be more aphibians observed in undeveloped habitat types (Luedtke
+et al., 2023).
 
-For this question, we are exploring the relationship between a quantitative variable and a categorical variable. Species richness is a discrete variable and land class is a nominal categorical variable.
+For this question, we are exploring the relationship between a
+quantitative variable and a categorical variable. Species richness is a
+discrete variable and land class is a nominal categorical variable.
 
-For this analysis, we will be using one-way ANOVA to explore the relationship between our variables.
+For this analysis, we will be using one-way ANOVA to explore the
+relationship between our variables.
 
 #### Read in data
-For this analysis we need to work with the whole gad_moon.csv dataset. We will need to use dplyr functions to create a species richness variable.
+
+For this analysis we need to work with the whole gad_moon.csv dataset.
+We will need to use dplyr functions to create a species richness
+variable.
+
 ```{r}
 gad <- read.csv(here("data", "gad_moon.csv"))
 
@@ -429,11 +512,14 @@ sp.richness.df2 <- gad |>
   mutate(LandClass = as.factor(LandClass))
 ```
 
-The code for sp.richness.df2 creates observations per date per landclass. It also removes all na values and puts the variables into the correct data types.
+The code for sp.richness.df2 creates observations per date per
+landclass. It also removes all na values and puts the variables into the
+correct data types.
 
 #### plot the data
 
 Make a boxplot of the means and standard deviations of each group.
+
 ```{r}
 ggplot(sp.richness.df2, aes(LandClass, SpeciesRichness))+
   geom_boxplot()+
@@ -441,7 +527,14 @@ ggplot(sp.richness.df2, aes(LandClass, SpeciesRichness))+
 
 #group the ones with one variable into other
 ```
-There is a clear difference in means between the groups. some of the groups have far fewer observations than others. I will combine the groupings that have too few observations and reasses. DevOpen will be combine with DevMed, DevLow, and DevHigh to form a new category called Developed. OpenWater, Mixed Forest, and EmergHerbWet will go into an "Other" category. 
+
+There is a clear difference in means between the groups. some of the
+groups have far fewer observations than others. I will combine the
+groupings that have too few observations and reasses. DevOpen will be
+combine with DevMed, DevLow, and DevHigh to form a new category called
+Developed. OpenWater, Mixed Forest, and EmergHerbWet will go into an
+"Other" category.
+
 ```{r}
 sp.richness.df2.grouped <- sp.richness.df2 |> 
   mutate(LandClass = fct_collapse(LandClass, Developed = c("DevOpen",
@@ -455,20 +548,20 @@ sp.richness.df2.grouped <- sp.richness.df2 |>
 ```
 
 Now I can replot
+
 ```{r}
 ggplot(sp.richness.df2.grouped, aes(LandClass, SpeciesRichness))+
   geom_boxplot()+
   coord_flip()
 ```
-The developed category looks good, the other category still isn't great but I'll work with it. Now I can estimate the group mean species richness/survey.
-WoodWet - 2.1
-PastHay - 0.8
-EvergForest - 1.4
-Other - 0.8
-Developed - 0.8
-DecidForest - 2.1
+
+The developed category looks good, the other category still isn't great
+but I'll work with it. Now I can estimate the group mean species
+richness/survey. WoodWet - 2.1 PastHay - 0.8 EvergForest - 1.4 Other -
+0.8 Developed - 0.8 DecidForest - 2.1
 
 I also want to look at the distribution of the data.
+
 ```{r}
 ggplot(sp.richness.df2.grouped, aes(SpeciesRichness))+
   geom_histogram()+
@@ -476,30 +569,47 @@ ggplot(sp.richness.df2.grouped, aes(SpeciesRichness))+
              ncol = 1)+
   theme()
 ```
-The data is not normally distributed, so a GLM should be used rather than a general linear model.
+
+The data is not normally distributed, so a GLM should be used rather
+than a general linear model.
 
 #### build a model
+
 ```{r}
 sr.glm <- glm(SpeciesRichness ~ LandClass, data = sp.richness.df2.grouped, family = poisson)
 ```
 
 #### check assumptions
+
 ```{r}
 autoplot(sr.glm)
 ```
-The plot doesn't meet the assumptions for a regular linear model so using a glm was correct. The normality assumption is very shaky, likely due to zero inflation in the data.
+
+The plot doesn't meet the assumptions for a regular linear model so
+using a glm was correct. The normality assumption is very shaky, likely
+due to zero inflation in the data.
 
 #### evaluate the model
+
 ```{r}
 anova(sr.glm, test = "Chisq")
 
 summary(sr.glm)
 ```
 
-The total deviance of the data is 174.53, while the amount of deviance in the land class is 168.78 This means that 3.2% of deviance in the species richness can be explained by land class. The p-value is also very high (p=0.3314) so we fail to reject the null hypothesis that there is no association between DEC land class and species richness per survey. This is likely because most of the survey area was on developed land classes, so there were a disproportionate amount of observations in developed areas and fewer surveys in intact habitat. 
+The total deviance of the data is 174.53, while the amount of deviance
+in the land class is 168.78 This means that 3.2% of deviance in the
+species richness can be explained by land class. The p-value is also
+very high (p=0.3314) so we fail to reject the null hypothesis that there
+is no association between DEC land class and species richness per
+survey. This is likely because most of the survey area was on developed
+land classes, so there were a disproportionate amount of observations in
+developed areas and fewer surveys in intact habitat.
 
 #### plot again
+
 I want to get the mean species richness/date to add to the plot
+
 ```{r}
 sr_means <- sp.richness.df2.grouped |>
   group_by(LandClass) |>
@@ -516,16 +626,42 @@ ggplot(data = sp.richness.df2.grouped, aes(x = LandClass, y = SpeciesRichness))+
 
 ## Challenges
 
-  I faced several challenges throughout the entire CapDAP process. Right away, I knew I would have problems with my dataset. There were very few complete cases in the original dataset and several of the variables were formatted incorrectly, making them obsolete. I also had to combine several levels of species names due to inconsistent data entry by student surveyors. Inconsistent data entry proved to be a very difficult problem to work with, so I had to focus on only the variables I actually needed to use in my analysis.
-  During my preliminary data analyses I had issues with the lack of normality in my data. My data was not normally distributed and at this point, we hadn't yet been introduced to the GLM. This was very confusing for me and I wasn't sure how to continue my analyses, so I decided to continue through our workflow despite bad autoplots. 
-  Learning the GLM function was also somewhat difficult as I wasn't sure how to interpret the deviance values. It also made me realize that my dataset had a huge issue with zero inflation, something that I didn't have the time to delve into fixing.
-  I also struggled with small coding mistakes during the final analysis process. At one point, it took my 30 minutes to realize that i had forgotten I pipe operator when making sp.richness.df2, so my NA values were still showing up. I also spent a considerable amount of time on my final graph plotting moon illumination and number of amphibians found because of a small typo that prevented my plot from rendering.
-  My concussion didn't help with things either.
-  
+I faced several challenges throughout the entire CapDAP process. Right
+away, I knew I would have problems with my dataset. There were very few
+complete cases in the original dataset and several of the variables were
+formatted incorrectly, making them obsolete. I also had to combine
+several levels of species names due to inconsistent data entry by
+student surveyors. Inconsistent data entry proved to be a very difficult
+problem to work with, so I had to focus on only the variables I actually
+needed to use in my analysis. During my preliminary data analyses I had
+issues with the lack of normality in my data. My data was not normally
+distributed and at this point, we hadn't yet been introduced to the GLM.
+This was very confusing for me and I wasn't sure how to continue my
+analyses, so I decided to continue through our workflow despite bad
+autoplots. Learning the GLM function was also somewhat difficult as I
+wasn't sure how to interpret the deviance values. It also made me
+realize that my dataset had a huge issue with zero inflation, something
+that I didn't have the time to delve into fixing. I also struggled with
+small coding mistakes during the final analysis process. At one point,
+it took my 30 minutes to realize that i had forgotten I pipe operator
+when making sp.richness.df2, so my NA values were still showing up. I
+also spent a considerable amount of time on my final graph plotting moon
+illumination and number of amphibians found because of a small typo that
+prevented my plot from rendering. My concussion didn't help with things
+either.
+
 ## Works Cited
 
-Ferguson, D. E., & Landreth, H. F. (1966). Celestial orientation of fowler’s toad bufo fowleri. Behaviour, 26(1–2), 105–123. https://doi.org/10.1163/156853966X00047
+Ferguson, D. E., & Landreth, H. F. (1966). Celestial orientation of
+fowler’s toad bufo fowleri. Behaviour, 26(1–2), 105–123.
+https://doi.org/10.1163/156853966X00047
 
-Grant, R., Halliday, T., & Chadwick, E. (2013). Amphibians’ response to the lunar synodic cycle—A review of current knowledge, recommendations, and implications for conservation. Behavioral Ecology, 24(1), 53–62. https://doi.org/10.1093/beheco/ars135
+Grant, R., Halliday, T., & Chadwick, E. (2013). Amphibians’ response to
+the lunar synodic cycle—A review of current knowledge, recommendations,
+and implications for conservation. Behavioral Ecology, 24(1), 53–62.
+https://doi.org/10.1093/beheco/ars135
 
-Luedtke, J. A., Chanson, J., Neam, K., Hobin, L., Maciel, A. O., Catenazzi, A., ... & Stuart, S. N. (2023). Ongoing declines for the world’s amphibians in the face of emerging threats. Nature, 622(7982), 308-314.
+Luedtke, J. A., Chanson, J., Neam, K., Hobin, L., Maciel, A. O.,
+Catenazzi, A., ... & Stuart, S. N. (2023). Ongoing declines for the
+world’s amphibians in the face of emerging threats. Nature, 622(7982),
+308-314.
